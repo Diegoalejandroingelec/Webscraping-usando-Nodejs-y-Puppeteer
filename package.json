@@ -21,5 +21,8 @@
     "puppeteer-extra-plugin-user-preferences": "^2.2.11",
     "request": "^2.88.2",
     "request-promise": "^4.2.6"
+  },
+  "devDependencies": {
+    "dotenv": "^8.2.0"
   }
 }

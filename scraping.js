@@ -1,7 +1,10 @@
+require('dotenv').config();
+
 const cheerio = require('cheerio');
+//Email y contraseña de gmail para entrar a Dialogflow
 input={
-    username: "ramirezvargasdiegoalejandro2@gmail.com",
-    password: "queleimporta1"
+    username: process.env.EMAIL,
+    password: process.env.PASSWORD
 };
 
 
