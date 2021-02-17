@@ -1,9 +1,13 @@
 require('dotenv').config();
+const fs= require('fs');
+const archivo= 'NoMatch.txt';
 //Email y contraseña de gmail para entrar a Dialogflow
 input={
     username: process.env.EMAIL,
     password: process.env.PASSWORD
 };
+
+
 const navigateUpToHistory= async (page,browser)=>{
     await page.goto('https://accounts.google.com/o/oauth2/auth/identifier?redirect_uri=storagerelay%3A%2F%2Fhttps%2Fdialogflow.cloud.google.com%3Fid%3Dauth978297&response_type=permission%20id_token&scope=email%20profile%20openid%20https%3A%2F%2Fwww.googleapis.com%2Fauth%2Fcloud-platform%20https%3A%2F%2Fwww.googleapis.com%2Fauth%2Factions.builder%20https%3A%2F%2Fwww.googleapis.com%2Fauth%2Fassistant%20https%3A%2F%2Fwww.googleapis.com%2Fauth%2Flogging.write&openid.realm&client_id=1016740739912-2dfjqgvhb5aqn920vvarkfniio1cahlh.apps.googleusercontent.com&ss_domain=https%3A%2F%2Fdialogflow.cloud.google.com&fetch_basic_profile=true&gsiwebsdk=2&flowName=GeneralOAuthFlow'); 
     await page.type('#identifierId', input.username);
@@ -88,27 +92,49 @@ const adaptPageForScraping= async (page2)=>{
 
 const computeNumberOfNoMatch= async (page2)=>{
   await page2.waitForTimeout(5000);
-  let Btndata=await page2.evaluate(async () => {
+  let [Btndata, noMatchwords]=await page2.evaluate(async () => {
+    const noMatchwords=[];
     function timeout(ms) {
       return new Promise(resolve => setTimeout(resolve, ms));
     }
+
     let contNoMatch=0;
     let info=true
     while(info===true){
       const buttonNext=document.querySelector('div.page-nav-buttons.unselectable').children[1];
       let classBtn=buttonNext.getAttribute('class');
+      const conversations=document.querySelector('div.conversations-component').children;
+      
+      for (const conversation of conversations) {
+        conversation.children[0].click();
+        console.log('CONVERSACION ABIERTA')
+
+        const msgs=document.querySelector("div.content-section-interactions").children;
+        for(let i=1; i<msgs.length;i++){
+          if(msgs[i].children[1].children[0].children[1].textContent==='No matched intent'){
+            noMatchwords.push(msgs[i].children[0].children[0].children[1].textContent)
+            console.log(msgs[i].children[0].children[0].children[1].textContent);
+          }
+        }
+
+        //await timeout(500)
+      }
+      //console.log('acabo el for')
+      //console.log(noMatchwords.length);
+
+      
       if(classBtn==='next material-icons'){
         buttonNext.click()
         await timeout(2000)
-        console.log('click!!!!')
+        //console.log('click!!!!')
         contNoMatch+=25
-        console.log("Available", contNoMatch)
+        //console.log("Available", contNoMatch)
       }else{
-        console.log("NOT Available", contNoMatch)
+        //console.log("NOT Available", contNoMatch)
         info=false;
       }
     }
-    return contNoMatch
+    return [contNoMatch,noMatchwords]
   });
   await page2.waitForTimeout(2000);
   const BtndataFinal= await page2.evaluate(() => {
@@ -117,7 +143,10 @@ const computeNumberOfNoMatch= async (page2)=>{
     return contNoMatch    
   })
   Btndata+=BtndataFinal;
-  console.log('La cantidad de no match es: '+Btndata);
+  console.log('La cantidad de sesiones con no match es: '+Btndata);
+  console.log('La cantidad de No Match es: '+noMatchwords.length);
+  //console.log('Las inputs con No Match son: '+noMatchwords);
+  fs.writeFileSync(archivo,noMatchwords.toString());
 }
 
 const puppeteer = require('puppeteer-extra')
@@ -132,7 +161,7 @@ puppeteer.use(require('puppeteer-extra-plugin-stealth')())
     let page2=await navigateUpToHistory(page,browser);
     await adaptPageForScraping(page2);
     await computeNumberOfNoMatch(page2);
-   // await page2.waitForTimeout(300000);
+    //await page2.waitForTimeout(300000);
     await browser.close()
 })()
 
