@@ -11,11 +11,11 @@
   "author": "",
   "license": "ISC",
   "dependencies": {
-    "apify": "^1.0.0",
+    "apify": "^1.0.1",
     "axios": "^0.21.1",
     "cheerio": "^1.0.0-rc.5",
     "fs": "^0.0.1-security",
-    "puppeteer": "^7.0.0",
+    "puppeteer": "^7.1.0",
     "puppeteer-extra": "^3.1.16",
     "puppeteer-extra-plugin-adblocker": "^2.11.10",
     "puppeteer-extra-plugin-anonymize-ua": "^2.2.15",
